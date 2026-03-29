@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+// size of list_node = 16 bytes (w/ padding)
 typedef struct list_node {
-    int val;
-    struct list_node *next;
+    int val;                    // 4 bytes
+    struct list_node *next;     // 8 bytes
 } list_node;
 
 
@@ -126,7 +127,7 @@ void print_list_node_addr(linked_list *list)
 
 void walk_list(list_node *head)
 {
-    list_node *curr = head;
+    list_node volatile *curr = head;
     while (curr) {
         curr = curr->next;
     }
@@ -153,7 +154,7 @@ int main(int argc, char *argv[]) {
         }
     }    
 
-    shuffle_list(list1);
+    // shuffle_list(list1);
     // print_list_node_val(list1);
     // print_list_node_addr(list1);
     walk_list(list1->head);
