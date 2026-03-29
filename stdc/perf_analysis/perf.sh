@@ -6,7 +6,7 @@ for size in 1000 10000 100000 1000000 10000000; do
     echo "Testing Size: $size..."
 
     # perf
-    RAW_PERF=$(sudo perf stat -x, -e cache-references,cache-misses,instructions,cycles ./perf_exp $size 2>&1)
+    RAW_PERF=$(sudo perf stat -x, --repeat 5 -e cache-references,cache-misses,instructions,cycles ./perf_exp $size 2>&1)
 
     REFS=$(echo "$RAW_PERF" | grep "cache-references" | cut -d',' -f1)
     MISSES=$(echo "$RAW_PERF" | grep "cache-misses" | cut -d',' -f1)    
