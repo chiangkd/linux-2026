@@ -2,7 +2,7 @@ set terminal pngcairo size 1000,600 enhanced font 'Verdana,10'
 set output 'linked_list_perf.png'
 
 # Set title
-set title "Linked List Cache Miss Rate (No shuffle) vs List Size" font "Verdana, 18"
+set title "Linked List length Cache Misses vs List Size" font "Verdana, 18"
 
 set datafile separator ","
 set grid

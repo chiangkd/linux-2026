@@ -10,37 +10,6 @@ typedef struct list_node {
     struct list_node *next;     // 8 bytes
 } list_node;
 
-
-// list_node *middle_node(list_node *head)
-// {
-//     list_node *slow, *fast;
-//     slow = fast = head;
-//     while (fast && fast->next) {
-//         slow = slow->next;
-//         fast = fast->next->next;
-//     }
-//     return slow;
-// }
-
-
-// Single pointer implementation
-list_node *middle_node(list_node *head)
-{
-    list_node *cur = head;
-    int n = 0;
-    while (cur) {
-        ++n;
-        cur = cur->next;
-    }
-    int k = 0;
-    cur = head;
-    while (k < n / 2) {
-        ++k;
-        cur = cur->next;
-    }
-    return cur;
-}
-
 typedef struct {
     list_node *head;
     int current_size;
@@ -154,12 +123,16 @@ int main(int argc, char *argv[]) {
         }
     }    
 
-    // shuffle_list(list1);
+    shuffle_list(list1);
     // print_list_node_val(list1);
     // print_list_node_addr(list1);
     walk_list(list1->head);
 
-    // printf("rand num = %d\n", rand());
+    // Find middle pointer
+    // list_node *mid_node = middle_node_fast_slow_imple(list1->head);
+    // list_node *mid_node = middle_node_single_imple(list1->head);
+
+    // printf(" middle node value = %d\n", mid_node->val);
 
     return 0;
 }
