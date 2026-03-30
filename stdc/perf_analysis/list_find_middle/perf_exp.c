@@ -13,7 +13,7 @@ typedef struct list_node {
 // Fast slow implementation
 list_node *middle_node_fast_slow_imple(list_node *head)
 {
-    list_node *slow, *fast;
+    list_node  volatile *slow, *fast;
     slow = fast = head;
     while (fast && fast->next) {
         slow = slow->next;
@@ -153,14 +153,16 @@ int main(int argc, char *argv[]) {
         }
     }    
 
-    shuffle_list(list1);
+    // shuffle_list(list1);
     // print_list_node_val(list1);
     // print_list_node_addr(list1);
     // walk_list(list1->head);
 
     // Find middle pointer
-    // list_node *mid_node = middle_node_fast_slow_imple(list1->head);
-    list_node *mid_node = middle_node_single_imple(list1->head);
+    for (int i = 0; i < 10000; i++) {
+        list_node *mid_node = middle_node_fast_slow_imple(list1->head);
+    }
+    // list_node *mid_node = middle_node_single_imple(list1->head);
 
     // printf(" middle node value = %d\n", mid_node->val);
 

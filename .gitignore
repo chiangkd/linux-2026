@@ -1,3 +1,5 @@
 perf_exp
 *.csv
 *.png
+*.data
+*.data.old

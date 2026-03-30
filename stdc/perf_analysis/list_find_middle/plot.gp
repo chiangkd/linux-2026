@@ -1,12 +1,12 @@
 set terminal pngcairo size 1000,600 enhanced font "Verdana,10"
-set output 'Cache_misses_analysis.png'
+set output 'Cache_misses_rate_analysis.png'
 
 set datafile separator ","
 set grid
 # set logscale x 10
 set xlabel "Number of Nodes"
-set ylabel "Cache Misses"
-set title "{/Bold Cache misses (Fast-Slow vs. Single)}" font ",14"
+set ylabel "Cache Misses Rate"
+set title "{/Bold Cache Misses Rate (Fast-Slow vs. Single) w/, w/o shuffle}" font ",14"
 
 # L1/L2 Boundary
 # 12400 P-core: L1D=48KB (~3,072 nodes), L2=1.25MB (~81920 nodes)
@@ -38,8 +38,19 @@ set label "L2 Boundary" at 40000, graph 0.7
 
 
 # Set x-axis range
-set xrange [0:500000]
+set xrange [0:900000]
 
 # Compare 'Cache_Miss'
-plot "perf_data_fs_find_middle.csv" using 1:2 with linespoints title "Fast-Slow: Cache Miss" lw 2 pt 7 lc rgb "red", \
-   "perf_data_single_find_middle.csv" using 1:2 with linespoints title "Single Pointer: Cache MIss" lw 2 pt 5 lc rgb "blue"
+# plot "perf_data_fs_find_middle.csv" using 1:2 with linespoints title "Fast-Slow: Cache Miss" lw 2 pt 7 lc rgb "red", \
+#   "perf_data_single_find_middle.csv" using 1:2 with linespoints title "Single Pointer: Cache MIss" lw 2 pt 5 lc rgb "blue"
+
+
+# Calculate cache miss rate
+# 讀取資料並計算比率 ($2/$1 代表 Miss / Nodes)
+#plot "perf_data_single_find_middle.csv" using 1:($2/$1) with linespoints title "Single (No Shuffle)" lw 2 lc rgb "skyblue" dt 2, \
+#     "perf_data_fs_find_middle.csv" using 1:($2/$1) with linespoints title "Fast-Slow (No Shuffle)" lw 2 lc rgb "orange" dt 2
+
+plot "cache_miss_rate_data.csv" using 1:($2/$1) with linespoints title "Single (Shuffle)" lw 2 lc rgb "blue", \
+     "cache_miss_rate_data.csv" using 1:($3/$1) with linespoints title "Fast-Slow (Shuffle)" lw 2 lc rgb "red", \
+     "cache_miss_rate_data.csv" using 1:($4/$1) with linespoints title "Single (No Shuffle)" lw 2 lc rgb "skyblue" dt 2, \
+     "cache_miss_rate_data.csv" using 1:($5/$1) with linespoints title "Fast-Slow (No Shuffle)" lw 2 lc rgb "orange" dt 2
