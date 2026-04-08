@@ -3,3 +3,4 @@ perf_exp
 *.png
 *.data
 *.data.old
+*.out
