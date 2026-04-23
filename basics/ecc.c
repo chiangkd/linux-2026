@@ -22,7 +22,6 @@ void print_binary(unsigned int n) {
         printf("%d", bit);
         if (i % 8 == 0 && i != 0) printf(" ");
     }
-    printf("\n");
 }
 
 struct simple_rs_codec {
@@ -49,6 +48,44 @@ int my_rs_modnn(struct simple_rs_codec rs, int x)
     return x;
 }
 
+/**
+ * a * b =  a^{log_k(a) + log_k(b)} when k is primitive element
+ */
+int gf_mul(struct simple_rs_codec rs, int a, int b)
+{
+    if (a == 0 || b == 0) {
+        return 0;
+    }
+
+    // get log_k(a) + log_k(b)
+    int sum = rs.index_of[a] + rs.index_of[b];
+    int res = my_rs_modnn(rs, sum);
+
+    return rs.alpha_to[res];
+}
+
+/**
+ * Get the multiplicative inverse
+ * 
+ */
+int gf_inv(struct simple_rs_codec rs, int a)
+{
+    if (a == 0) return 0;   // 0 do not have multiplicative inverse
+
+    /**
+     * a * inv = 1 = k^0
+     * log(a) + log(inv) = 0 (mod 255)
+     * log(inv) = 255 - log(a)
+     */
+
+    int inv_idx = rs.nn - rs.index_of[a];   // get log(inv)
+
+    if (inv_idx == rs.nn) {
+        inv_idx = 0;
+    }
+
+    return rs.alpha_to[inv_idx];
+}
 
 int main()
 {
@@ -58,19 +95,22 @@ int main()
     int prim = 2;       // primitive element
     int fcr = 0;        // first root of RS code generator
     int nroots = 32;    // Consider error correction capability and overhead
+    int err_flag = 0;
 
+    // Init my rs codec
     struct simple_rs_codec my_rs = {0};
     my_rs.mm = symsize;
     my_rs.nn = (1 << symsize) - 1;  // symbols per block
+    my_rs.nroots = 32;
     my_rs.prim = prim;
     my_rs.gfpoly = gfpoly;
 
 
     int sr, iprim, root;
     
-    my_rs.index_of = malloc(sizeof(int) * (my_rs.nn + 1));
-    my_rs.alpha_to = malloc(sizeof(int) * (my_rs.nn + 1));
-    my_rs.genpoly = malloc(sizeof(int) * (my_rs.nroots + 1));
+    my_rs.index_of = malloc(sizeof(uint16_t) * (my_rs.nn + 1));
+    my_rs.alpha_to = malloc(sizeof(uint16_t) * (my_rs.nn + 1));
+    my_rs.genpoly = malloc(sizeof(uint16_t) * (my_rs.nroots + 1));
 
     my_rs.index_of[0] = my_rs.nn;     /* log (0) = -inf */
     my_rs.alpha_to[my_rs.nn] = 0;     /* alpha**(-inf) = 0 */
@@ -99,7 +139,7 @@ int main()
     my_rs.genpoly[0] = 1;
     for (int i = 0, root = fcr * prim; i < nroots; i++, root += prim) {
         my_rs.genpoly[i + 1] = 1;
-        for (int j = 1; j > 0; j--) {
+        for (int j = i; j > 0; j--) {
             if (my_rs.genpoly[j] != 0) {
                 my_rs.genpoly[j] = my_rs.genpoly[j - 1] ^ my_rs.alpha_to[my_rs_modnn(my_rs, my_rs.index_of[my_rs.genpoly[j]] + root)];
             } else {
@@ -109,23 +149,34 @@ int main()
         my_rs.genpoly[0] = my_rs.alpha_to[my_rs_modnn(my_rs, my_rs.index_of[my_rs.genpoly[0]] + root)];
     }
     // Convert rs->genpoly[] to index form for quicker encoding
-    for (int i = 0; i < nroots; i++) {
+    for (int i = 0; i <= nroots; i++) {
         my_rs.genpoly[i] = my_rs.index_of[my_rs.genpoly[i]];
     }
-    
-    printf("index_of =\n");
-    for (int j = 0; j < (my_rs.nn + 1); j++) {
-        printf("[%d] =\t", j);
-        print_binary(my_rs.index_of[j]);
-    }
-    printf("\n");
 
-    printf("alpha_to =\n");
-    for (int j = 0; j < (my_rs.nn + 1); j++) {
-        printf("[%d] =\t", j);
-        print_binary(my_rs.alpha_to[j]);
+    int error_count = 0;
+    // Verify the  $a \cdot a^{-1} = 1$
+    for (int a = 1; a <= my_rs.nn; a++) {
+        int inv = gf_inv(my_rs, a);
+        int res = gf_mul(my_rs, a, inv);
+
+        if (res != 1) {
+            printf("Verify fail");
+            printf("a=");
+            print_binary(a);
+            printf("inv=");
+            print_binary(inv);
+
+            error_count++;
+        } else {
+            printf("a[%d] -> ", a);
+            print_binary(a);
+            printf(" * ");
+            print_binary(inv);
+            printf(" = ");
+            print_binary(res);
+            printf(" --> verify pass\n");
+        }
     }
-    printf("\n");
 
 
 }
